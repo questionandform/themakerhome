@@ -3,7 +3,7 @@
 
   // CONTACT CONFIGURATION: add the approved public HTTPS destination here.
   // Keep this empty until a business contact URL is approved; all CTAs stay hidden.
-  const CONTACT_URL = "";
+  const CONTACT_URL = "https://www.instagram.com/themaker.home/";
 
   if (!CONTACT_URL) {
     return;
