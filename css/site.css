@@ -33,7 +33,7 @@
   display: none !important;
 }
 
-.custom-art a {
+.custom-art a:not(.custom-art__cta) {
   color: inherit;
 }
 
