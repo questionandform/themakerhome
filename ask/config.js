@@ -1,5 +1,15 @@
-// Public routing configuration only. Never place secrets here.
-window.QF_ASK_CONFIG = Object.freeze({
-  apiBase: "", // Set to the approved HTTPS Worker origin once the queue is connected.
-  emailDeliveryEnabled: false // Keep false until email has been configured and tested.
+window.QF_ASK_CONFIG=Object.freeze({
+  "communityUiEnabled": false,
+  "communitySubmissionEnabled": false,
+  "communityCommentsEnabled": false,
+  "humanHelpUiEnabled": false,
+  "contactCollectionEnabled": false,
+  "professionalProfilesEnabled": false,
+  "professionalMatchingEnabled": false,
+  "facebookLinksEnabled": false,
+  "discordLinksEnabled": false,
+  "apiBase": "",
+  "submissionEnabled": false,
+  "emailDeliveryEnabled": false,
+  "communityPublicationEnabled": false
 });
