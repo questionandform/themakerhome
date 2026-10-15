@@ -21,8 +21,53 @@
   let apiBase = "";
   try {
     const url = new URL(settings.apiBase);
-    if (url.protocol === "https:" && !url.username && !url.password && url.pathname === "/" && !url.search && !url.hash) apiBase = url.origin;
+    if (settings.submissionEnabled === true && location.protocol === "https:" && url.protocol === "https:" && !url.username && !url.password && url.pathname === "/" && !url.search && !url.hash) apiBase = url.origin;
   } catch {}
+  const communityChoice = document.querySelector("#community-consent");
+  const humanChoice = document.querySelector("#human-help-consent");
+  const contactChoice = document.querySelector("#contact-consent");
+  const humanFields = document.querySelector("#human-help-fields");
+  const contactEmail = document.querySelector("#contact-email");
+  const ageBand = document.querySelector("#age-band");
+  const versions = { community: "community-v1-2026-10-15", human_help: "human-help-v1-2026-10-15", contact: "contact-v1-2026-10-15" };
+  function refreshHelp() {
+    humanFields.hidden = !humanChoice.checked; humanFields.disabled = !humanChoice.checked;
+    contactEmail.disabled = !(humanChoice.checked && apiBase && settings.contactCollectionEnabled === true);
+    const minor = ageBand && ageBand.value !== "adult";
+    if (ageBand) {
+      document.querySelector("#minor-safety").hidden = !minor;
+      document.querySelector("#contact-email-label").innerHTML = minor ? 'Adult / guardian contact email <span>— required before contact</span>' : 'Contact email <span>— required before contact</span>';
+    }
+    contactEmail.required = !contactEmail.disabled && contactChoice.checked;
+  }
+  function collectOptions() {
+    const consents = {};
+    for (const [scope, control] of Object.entries({ community: communityChoice, human_help: humanChoice, contact: contactChoice })) consents[scope] = { granted: scope === "contact" ? humanChoice.checked && control.checked : control.checked, version: versions[scope] };
+    const options = { consents };
+    if (!humanChoice.checked) return options;
+    const h = { broad_location: form.elements.broad_location.value.trim(), language: form.elements.contact_language.value, timeline: form.elements.help_timeline.value };
+    if (agent === "THINK") Object.assign(h, { age_band: ageBand.value, topic: form.elements.help_topic.value, help_type: form.elements.help_type.value, format: form.elements.help_format.value, guardian_contact: form.elements.guardian_contact.checked });
+    if (agent === "SHAPE") Object.assign(h, { project_type: form.elements.project_type.value, project_size: form.elements.project_size.value.trim(), budget_band: form.elements.budget_band.value, wanted_help: form.elements.wanted_help.value });
+    if (agent === "MAKE") Object.assign(h, { project_type: form.elements.project_type.value, project_size: form.elements.project_size.value, one_day: form.elements.one_day.value, materials: form.elements.materials.value.trim(), wanted_help: form.elements.wanted_help.value });
+    options.help = h;
+    if (consents.contact.granted && !contactEmail.disabled) options.contact_email = contactEmail.value.trim();
+    return options;
+  }
+  for (const input of [humanChoice, contactChoice, ageBand].filter(Boolean)) input.addEventListener("change", refreshHelp);
+  queueMicrotask(refreshHelp);
+  for (const scope of ["community", "human_help"]) {
+    const button = document.querySelector("#withdraw-" + scope);
+    button.addEventListener("click", async () => {
+      if (!apiBase || !activeReceipt) return;
+      button.disabled = true;
+      try {
+        await callApi("/v1/requests/" + activeReceipt.request_id + "/consents", { method: "POST", headers: { "Content-Type": "application/json", "X-Request-Token": activeReceipt.token }, body: JSON.stringify({ operation_id: uuid(), withdraw: [scope] }) });
+        document.querySelector("#consent-summary").textContent = scope === "community" ? "Community permission withdrawn. No automatic publication." : "Human-help and contact permission withdrawn. No automatic routing.";
+      } catch { showError("We could not confirm withdrawal. Keep your receipt and try again later."); }
+      finally { button.disabled = false; }
+    });
+  }
+
   const storageKey = "qf-receipt-" + agent;
   let activeReceipt = null;
   let attempted = null;
@@ -56,6 +101,7 @@
     check.hidden = data.status === "answered";
     copy.hidden = false;
     forget.hidden = false;
+    for (const scope of ["community", "human_help"]) document.querySelector("#withdraw-" + scope).hidden = !apiBase;
   }
   function receiptLink(value) {
     // A fragment stays in the browser: it is not sent to the site host or a referrer.
@@ -113,6 +159,7 @@
       note.textContent = "Your question is prepared in this tab. Answer delivery isn’t connected yet, so nothing has been sent. You can copy your question to keep it.";
       idLabel.textContent = uuid();
       answer.hidden = true; check.hidden = true; copy.hidden = false; forget.hidden = true;
+      document.querySelector("#consent-summary").textContent = "Community sharing: " + (communityChoice.checked ? "permission noted in this draft; still private and subject to moderation." : "not selected.") + "\nHuman help: " + (humanChoice.checked ? "interest noted in this draft; no contact details collected, nobody contacted." : "not selected.") + "\nNothing is submitted, saved as a lead, or published.";
       activeReceipt = null;
       receipt.scrollIntoView({ block: "nearest", behavior: "auto" });
       return;
@@ -123,7 +170,7 @@
       const data = await callApi("/v1/requests", {
         method: "POST",
         headers: { "Content-Type": "application/json", "X-Request-Token": identity.token },
-        body: JSON.stringify({ request_id: identity.request_id, agent, source_site: sourceSite, question: text, email: email.disabled ? "" : email.value.trim(), website: form.elements.website.value })
+        body: JSON.stringify({ request_id: identity.request_id, agent, source_site: sourceSite, question: text, email: email.disabled ? "" : email.value.trim(), website: form.elements.website.value, options: collectOptions() })
       });
       if (data.request_id !== identity.request_id || !["pending", "answered"].includes(data.status)) throw new Error("The service returned an unexpected receipt. Keep your question and try again later.");
       saveReceipt(identity); attempted = null; email.value = "";
