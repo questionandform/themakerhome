@@ -12,3 +12,8 @@ The shared backend contract, private GitHub queue setup, future scheduled task a
 ## Community and human-help review
 
 Community sharing and human-help interest are separate, unchecked choices. Conditional help details remain in this tab; contact email and answer email are disabled. No submission, publication, routing, upload, phone/WhatsApp or email collection is active. Contact consent is separate from community consent. The hub backend specification defines private manual review, versioned consent and receipt-authorized withdrawal. THINK additionally requires conservative age/guardian handling and valid HTTPS before activation. Preserve the parent landing page and CNAME. Review branch only; do not merge before screenshot/report approval.
+
+
+## Production-safe and local-review modes
+
+All nine public display flags in config.js default false. Community/help controls remain inert and absent from the active form. The original published draft experience remains the default. Only loopback /__review/ pages inject review display mode; it cannot turn on submission or contact collection. Canonical future discussions belong to this vertical under /community/<generated-thread-slug>/, with Question & Form as a summary/discovery hub. No public fixtures, profiles, comments or social links are active.

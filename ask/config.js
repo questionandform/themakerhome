@@ -1,8 +1,15 @@
-// Public feature gates only. Review pass: no submissions or email collection.
-window.QF_ASK_CONFIG = Object.freeze({
-  apiBase: "",
-  submissionEnabled: false,
-  emailDeliveryEnabled: false,
-  contactCollectionEnabled: false,
-  communityPublicationEnabled: false
+window.QF_ASK_CONFIG=Object.freeze({
+  "communityUiEnabled": false,
+  "communitySubmissionEnabled": false,
+  "communityCommentsEnabled": false,
+  "humanHelpUiEnabled": false,
+  "contactCollectionEnabled": false,
+  "professionalProfilesEnabled": false,
+  "professionalMatchingEnabled": false,
+  "facebookLinksEnabled": false,
+  "discordLinksEnabled": false,
+  "apiBase": "",
+  "submissionEnabled": false,
+  "emailDeliveryEnabled": false,
+  "communityPublicationEnabled": false
 });
